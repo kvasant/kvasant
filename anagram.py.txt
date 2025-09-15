@@ -1,0 +1,70 @@
+##########################################################################
+# Date Written: 2025-09-10
+# Written by..: Vasanth Kumar K
+# Purpose.....: 
+# Given a words.txt file containing a newline-delimited list of dictionary
+# words, please implement the Anagrams class so that the get_anagrams() method
+# returns all anagrams from words.txt for a given word.
+#
+# Features..........:
+#   - Optimised the code for fast retrieval
+#   - Added more tests
+#   - Thread safe implementation
+##########################################################################
+
+import itertools
+import unittest
+import threading
+
+
+class Anagrams:
+
+    global words
+    words=dict()
+    def __init__(self):
+# words is made as a Singleton variable due to its high memory requirement
+        global words
+        fileLock=threading.Lock()
+        if (len(words) == 0 ):    
+           print('Loading words dictionary from large file: words.txt')
+           with fileLock:
+              with open('words.txt','r') as file:
+                 words={ line.rstrip("\n").lower(): True  for line in file.readlines() }
+
+    def isValid(self,w):
+      if w in words:
+        return True
+      else:
+        return False
+
+    def get_anagrams(self, word):
+        word=word.lower()
+        loopLock=threading.Lock()
+        with loopLock:
+           answer=[]
+           for wordPerm in set(itertools.permutations(word,len(word))):
+             testWord=''.join(wordPerm)
+             if self.isValid(testWord):
+               answer.append(testWord)
+        return (sorted(answer))
+
+
+class TestAnagrams(unittest.TestCase):
+
+    def test_anagrams(self):
+        anagrams = Anagrams()
+        self.assertEqual(anagrams.get_anagrams('plates'), ['palest', 'pastel', 'petals', 'plates', 'staple'])
+        self.assertEqual(anagrams.get_anagrams('eat'), ['ate', 'eat', 'tea'])
+        self.assertEqual(anagrams.get_anagrams('reserve'), ['reserve', 'reveres', 'reverse', 'severer'])
+        self.assertEqual(anagrams.get_anagrams('three'), ['ether', 'there', 'three'])
+        self.assertEqual(anagrams.get_anagrams('abbreviate'), ['abbreviate'])
+        self.assertEqual(anagrams.get_anagrams(''), [])
+        self.assertEqual(anagrams.get_anagrams('absenT'), ['absent'])
+        self.assertEqual(anagrams.get_anagrams('absent'), ['absent'])
+        self.assertEqual(anagrams.get_anagrams('absend'), [])
+        anagrams2 = Anagrams()
+
+if __name__ == '__main__':
+    unittest.main()
+
+
